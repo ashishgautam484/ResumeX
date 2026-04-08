@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react'
 import '../style/interview.scss'
 import { useInterview } from '../hooks/useInterview.js'
 import { useNavigate, useParams } from 'react-router'
-
-
+import { useAuth } from '../../auth/hooks/useAuth.js'
 
 const NAV_ITEMS = [
     { id: 'technical', label: 'Technical Questions', icon: (<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="16 18 22 12 16 6" /><polyline points="8 6 2 12 8 18" /></svg>) },
@@ -61,6 +60,7 @@ const Interview = () => {
     const [ activeNav, setActiveNav ] = useState('technical')
     const { report, getReportById, loading, getResumePdf } = useInterview()
     const { interviewId } = useParams()
+    const { handleLogout } = useAuth()
 
     useEffect(() => {
         if (interviewId) {
@@ -84,7 +84,14 @@ const Interview = () => {
 
 
     return (
-        <div className='interview-page'>
+        <div className='interview-page' style={{ position: 'relative' }}>
+            <button 
+                onClick={handleLogout} 
+                className='button primary-button' 
+                style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', zIndex: 100 }}
+            >
+                Logout
+            </button>
             <div className='interview-layout'>
 
                 {/* ── Left Nav ── */}

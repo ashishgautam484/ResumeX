@@ -29,17 +29,18 @@ const Home = () => {
     }
 
     return (
-        <div className='home-page'>
+        <div className='home-page' style={{ position: 'relative' }}>
+            {/* Logout Button */}
+            <button 
+                onClick={handleLogout} 
+                className='button primary-button' 
+                style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', zIndex: 10 }}
+            >
+                Logout
+            </button>
 
             {/* Page Header */}
-            <header className='page-header' style={{ position: 'relative' }}>
-                <button 
-                    onClick={handleLogout} 
-                    className='button' 
-                    style={{ position: 'absolute', top: '10px', right: '10px', backgroundColor: 'transparent', border: '1px solid #7d8590', padding: '0.5rem 1rem' }}
-                >
-                    Logout
-                </button>
+            <header className='page-header'>
                 <h1>Create Your Custom <span className='highlight'>Interview Plan</span></h1>
                 <p>Let our AI analyze the job requirements and your unique profile to build a winning strategy.</p>
             </header>
