@@ -8,10 +8,10 @@ app.use(express.json())
 app.use(cookieParser())
 app.use(cors({
     origin: [process.env.FRONTEND_URL, "http://localhost:5173", "https://resume-x-tau.vercel.app"],
-    
+    credentials: true
 }))
 
-/* require all the routes here */
+/* require all the routes here */ 
 const authRouter = require("./routes/auth.routes")
 const interviewRouter = require("./routes/interview.routes")
 
