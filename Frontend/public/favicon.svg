@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ff6b9d" />
+      <stop offset="100%" stop-color="#e1034d" />
+    </linearGradient>
+  </defs>
+  <!-- Premium rounded background with pink gradient -->
+  <rect width="100" height="100" rx="26" fill="url(#bg)" />
+  <!-- Left to right cursive curve bowing inward -->
+  <path d="M 32 25 Q 65 50, 32 75" fill="none" stroke="white" stroke-width="11" stroke-linecap="round" />
+  <!-- Right to left cursive curve bowing inward -->
+  <path d="M 68 25 Q 35 50, 68 75" fill="none" stroke="white" stroke-width="11" stroke-linecap="round" />
+</svg>
