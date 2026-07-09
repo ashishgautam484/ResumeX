@@ -7,17 +7,70 @@ import { useAuth } from '../../auth/hooks/useAuth.js'
 const Home = () => {
     const { handleLogout } = useAuth()
 
-    const { loading, generateReport,reports } = useInterview()
+    const { loading, generateReport, reports } = useInterview()
     const [ jobDescription, setJobDescription ] = useState("")
     const [ selfDescription, setSelfDescription ] = useState("")
+    const [ resumeFile, setResumeFile ] = useState(null)
+    const [ toast, setToast ] = useState(null)
     const resumeInputRef = useRef()
 
     const navigate = useNavigate()
 
+    const triggerToast = (message, type = 'success') => {
+        setToast({ message, type })
+        setTimeout(() => {
+            setToast(null)
+        }, 3000)
+    }
+
+    const handleFileChange = (e) => {
+        const file = e.target.files[0]
+        if (file) {
+            if (file.size > 5 * 1024 * 1024) {
+                triggerToast("File size exceeds 5MB limit.", "error")
+                return
+            }
+            setResumeFile(file)
+            triggerToast(`Resume "${file.name}" uploaded successfully!`, "success")
+        }
+    }
+
+    const handleDragOver = (e) => {
+        e.preventDefault()
+    }
+
+    const handleDrop = (e) => {
+        e.preventDefault()
+        const file = e.dataTransfer.files[0]
+        if (file) {
+            if (file.type !== "application/pdf" && !file.name.endsWith(".docx")) {
+                triggerToast("Please upload a PDF or DOCX file.", "error")
+                return
+            }
+            if (file.size > 5 * 1024 * 1024) {
+                triggerToast("File size exceeds 5MB limit.", "error")
+                return
+            }
+            setResumeFile(file)
+            if (resumeInputRef.current) {
+                const dataTransfer = new DataTransfer()
+                dataTransfer.items.add(file)
+                resumeInputRef.current.files = dataTransfer.files
+            }
+            triggerToast(`Resume "${file.name}" uploaded successfully!`, "success")
+        }
+    }
+
     const handleGenerateReport = async () => {
-        const resumeFile = resumeInputRef.current.files[ 0 ]
-        const data = await generateReport({ jobDescription, selfDescription, resumeFile })
-        navigate(`/interview/${data._id}`)
+        const fileToUpload = resumeFile || (resumeInputRef.current?.files[0] || null)
+        if (!fileToUpload && !selfDescription) {
+            triggerToast("Either a Resume or a Self Description is required.", "error")
+            return
+        }
+        const data = await generateReport({ jobDescription, selfDescription, resumeFile: fileToUpload })
+        if (data && data._id) {
+            navigate(`/interview/${data._id}`)
+        }
     }
 
     if (loading) {
@@ -30,6 +83,17 @@ const Home = () => {
 
     return (
         <div className='home-page' style={{ position: 'relative' }}>
+            {/* Toast Notification */}
+            {toast && (
+                <div className={`toast toast--${toast.type}`}>
+                    {toast.type === 'success' ? (
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></svg>
+                    ) : (
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg>
+                    )}
+                    <span>{toast.message}</span>
+                </div>
+            )}
             {/* Logout Button */}
             <button 
                 onClick={handleLogout} 
@@ -85,13 +149,34 @@ const Home = () => {
                                 Upload Resume
                                 <span className='badge badge--best'>Best Results</span>
                             </label>
-                            <label className='dropzone' htmlFor='resume'>
+                            <label 
+                                className={`dropzone ${resumeFile ? 'dropzone--uploaded' : ''}`} 
+                                htmlFor='resume'
+                                onDragOver={handleDragOver}
+                                onDrop={handleDrop}
+                            >
                                 <span className='dropzone__icon'>
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="16 16 12 12 8 16" /><line x1="12" y1="12" x2="12" y2="21" /><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3" /></svg>
+                                    {resumeFile ? (
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></svg>
+                                    ) : (
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="16 16 12 12 8 16" /><line x1="12" y1="12" x2="12" y2="21" /><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3" /></svg>
+                                    )}
                                 </span>
-                                <p className='dropzone__title'>Click to upload or drag &amp; drop</p>
-                                <p className='dropzone__subtitle'>PDF or DOCX (Max 5MB)</p>
-                                <input ref={resumeInputRef} hidden type='file' id='resume' name='resume' accept='.pdf,.docx' />
+                                <p className='dropzone__title'>
+                                    {resumeFile ? resumeFile.name : 'Click to upload or drag & drop'}
+                                </p>
+                                <p className='dropzone__subtitle'>
+                                    {resumeFile ? `${(resumeFile.size / (1024 * 1024)).toFixed(2)} MB • Click/Drag to replace` : 'PDF or DOCX (Max 5MB)'}
+                                </p>
+                                <input 
+                                    ref={resumeInputRef} 
+                                    hidden 
+                                    type='file' 
+                                    id='resume' 
+                                    name='resume' 
+                                    accept='.pdf,.docx' 
+                                    onChange={handleFileChange}
+                                />
                             </label>
                         </div>
 
